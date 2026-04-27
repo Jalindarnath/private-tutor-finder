@@ -10,10 +10,9 @@ const Sidebar = () => {
   const studentNavItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Find Tutors', path: '/find-tutors', icon: Users },
-    { name: 'My Bookings', path: '/bookings', icon: CalendarCheck },
+    { name: 'My Tutors', path: '/my-tutors', icon: CalendarCheck },
     { name: 'Sessions', path: '/sessions', icon: History },
     { name: 'Messages', path: '/messages', icon: MessageSquare },
-    { name: 'Reviews', path: '/reviews', icon: Star },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
@@ -21,6 +20,7 @@ const Sidebar = () => {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Sessions', path: '/sessions', icon: History },
     { name: 'Messages', path: '/messages', icon: MessageSquare },
+    { name: 'Students', path: '/students', icon: Users },
     { name: 'Reviews', path: '/reviews', icon: Star },
     { name: 'Earnings', path: '/earnings', icon: DollarSign },
     { name: 'Settings', path: '/settings', icon: Settings },
@@ -40,14 +40,13 @@ const Sidebar = () => {
     <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white border-r border-gray-100 hidden md:flex flex-col transition-all duration-300 ease-in-out relative z-20`}>
       <div className="h-16 flex items-center px-4 md:px-6 justify-between border-b border-gray-50">
         <Link to="/dashboard" className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center opacity-0 w-0' : 'opacity-100 w-auto'} transition-opacity duration-300 hover:opacity-80`}>
-          <GraduationCap className="h-7 w-7 text-indigo-600 flex-shrink-0" />
+          <GraduationCap className="h-7 w-7 text-indigo-600 shrink-0" />
           <span className="font-bold text-xl text-gray-900 tracking-tight whitespace-nowrap">TutorFind</span>
         </Link>
-        {!collapsed && (
-           <GraduationCap className={`h-7 w-7 text-indigo-600 flex-shrink-0 absolute left-6 transition-all duration-300 opacity-0`} /> /* placeholder for smooth anim */
-        )}
-        {collapsed && (
-           <GraduationCap className="h-7 w-7 text-indigo-600 flex-shrink-0 absolute left-1/2 -translate-x-1/2" />
+        {collapsed ? (
+          <GraduationCap className="h-7 w-7 text-indigo-600 shrink-0 absolute left-1/2 -translate-x-1/2" />
+        ) : (
+          <GraduationCap className="h-7 w-7 text-indigo-600 shrink-0 absolute left-6 transition-all duration-300 opacity-0" />
         )}
       </div>
 
@@ -72,16 +71,18 @@ const Sidebar = () => {
             }
             title={collapsed ? item.name : ""}
           >
-            <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors ${collapsed ? 'mx-auto' : ''}`} />
+            <item.icon className={`h-5 w-5 shrink-0 transition-colors ${collapsed ? 'mx-auto' : ''}`} />
             {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
           </NavLink>
         ))}
       </nav>
 
       <div className="p-4 border-t border-gray-50">
-        <div className={`bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white relative overflow-hidden transition-all duration-300 ${collapsed ? 'px-2 py-3 text-center' : ''}`}>
+        <div className={`bg-linear-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white relative overflow-hidden transition-all duration-300 ${collapsed ? 'px-2 py-3 text-center' : ''}`}>
            <div className="absolute top-0 right-0 w-16 h-16 bg-white opacity-10 rounded-full -mr-8 -mt-8"></div>
-           {!collapsed ? (
+           {collapsed ? (
+             <Star className="w-6 h-6 mx-auto text-yellow-300" />
+           ) : (
              <>
                <p className="text-sm font-semibold mb-1">Upgrade Pro</p>
                <p className="text-xs text-indigo-100 mb-3">Get unlimited access</p>
@@ -89,8 +90,6 @@ const Sidebar = () => {
                  Upgrade Now
                </button>
              </>
-           ) : (
-             <Star className="w-6 h-6 mx-auto text-yellow-300" />
            )}
         </div>
       </div>

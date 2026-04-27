@@ -60,8 +60,13 @@ exports.getAllTutors = async (req, res) => {
     }
     if (rating) query.rating = { $gte: Number(rating) };
 
-    const tutors = await Tutor.find(query).populate('userId', 'name email');
-    res.json(tutors);
+    const tutors = await Tutor.find(query).populate('userId', 'name email phoneNumber role');
+    const filteredTutors = tutors.filter((tutor) => {
+      const hasValidUser = tutor.userId?.role === 'tutor';
+      const hasCoreProfile = Boolean(tutor.subjects?.length && tutor.experience && tutor.userId?.phoneNumber);
+      return hasValidUser && hasCoreProfile;
+    });
+    res.json(filteredTutors);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

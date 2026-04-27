@@ -11,6 +11,9 @@ import Messages from './pages/Messages';
 import Settings from './pages/Settings';
 import Sessions from './pages/Sessions';
 import Earnings from './pages/Earnings';
+import Reviews from './pages/Reviews';
+import Students from './pages/Students';
+import MyTutors from './pages/MyTutors';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 
@@ -28,6 +31,9 @@ function App() {
             <Route path="find-tutors" element={<FindTutors />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="students" element={<Students />} />
+            <Route path="my-tutors" element={<MyTutors />} />
             <Route path="settings" element={<Settings />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="earnings" element={<Earnings />} />

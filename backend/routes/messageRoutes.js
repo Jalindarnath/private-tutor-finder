@@ -4,6 +4,7 @@ const messageController = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/contacts', protect, messageController.getContacts);
+router.post('/announcement', protect, messageController.sendAnnouncement);
 router.get('/:otherUserId', protect, messageController.getMessages);
 router.post('/', protect, messageController.sendMessage);
 
