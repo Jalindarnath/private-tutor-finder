@@ -1,6 +1,5 @@
 const Booking = require('../models/Booking');
 const Tutor = require('../models/Tutor');
-const Message = require('../models/Message');
 
 exports.createBooking = async (req, res) => {
   try {
@@ -21,15 +20,6 @@ exports.createBooking = async (req, res) => {
       message
     });
 
-    const tutor = await Tutor.findById(tutorId).populate('userId', 'name');
-    if (tutor?.userId?._id) {
-      await Message.create({
-        senderId: tutor.userId._id,
-        receiverId: req.user.userId,
-        content: tutor.welcomeMessage || `Welcome to my tutoring class, ${req.user.name || 'student'}!`
-      });
-    }
-    
     res.status(201).json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });

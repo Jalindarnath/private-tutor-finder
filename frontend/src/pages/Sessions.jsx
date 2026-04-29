@@ -1,36 +1,82 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
+import { connectSocket } from '../services/socket';
 import { Calendar, Clock, Video, Presentation, X, Plus } from 'lucide-react';
 
 const Sessions = () => {
   const { user } = useContext(AuthContext);
   const [sessions, setSessions] = useState([]);
+  const [tutorStudents, setTutorStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [newSession, setNewSession] = useState({ date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
+  const [newSession, setNewSession] = useState({ studentId: '', date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
+
+  const fetchSessions = useCallback(async () => {
+    try {
+      const res = await api.get('/sessions');
+      setSessions(res.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchSessions();
-  }, []);
+    const interval = setInterval(fetchSessions, 15000);
 
-  async function fetchSessions() {
-    try {
-      const res = await api.get('/sessions');
-      setSessions(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-    setLoading(false);
-  }
+    return () => clearInterval(interval);
+  }, [fetchSessions]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const token = localStorage.getItem('token');
+    const socket = connectSocket(token);
+    if (!socket) return;
+
+    const handleSessionUpdated = () => {
+      fetchSessions();
+    };
+
+    socket.on('session:updated', handleSessionUpdated);
+
+    return () => {
+      socket.off('session:updated', handleSessionUpdated);
+    };
+  }, [user, fetchSessions]);
+
+  useEffect(() => {
+    const fetchTutorStudents = async () => {
+      if (user?.role !== 'tutor') return;
+
+      try {
+        const res = await api.get('/bookings/tutor/students');
+        setTutorStudents(res.data || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchTutorStudents();
+  }, [user]);
 
   const handleCreateSession = async (e) => {
     e.preventDefault();
+
+    if (user?.role === 'tutor' && !newSession.studentId) {
+      alert('Please select a student before creating a session.');
+      return;
+    }
+
     try {
       await api.post('/sessions', newSession);
       setShowModal(false);
+      setNewSession({ studentId: '', date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
       fetchSessions();
     } catch (error) {
       console.error(error);
@@ -41,7 +87,7 @@ const Sessions = () => {
   const handleStatusUpdate = async (id, status) => {
     try {
       await api.put(`/sessions/${id}`, { status });
-      setSessions(sessions.map(s => s._id === id ? { ...s, status } : s));
+      await fetchSessions();
     } catch (error) {
       console.error(error);
     }
@@ -132,17 +178,17 @@ const Sessions = () => {
              </div>
              <form onSubmit={handleCreateSession} className="space-y-4">
                <div>
-                  <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Date</label>
-                  <input required type="date" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.date} onChange={e => setNewSession({...newSession, date: e.target.value})}/>
+                <label htmlFor="session-date" className="block text-xs font-bold text-gray-600 uppercase mb-1">Date</label>
+                <input id="session-date" required type="date" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.date} onChange={e => setNewSession({...newSession, date: e.target.value})}/>
                </div>
                <div className="flex gap-4">
                  <div className="w-1/2">
-                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Time</label>
-                    <input required type="time" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.time} onChange={e => setNewSession({...newSession, time: e.target.value})}/>
+                  <label htmlFor="session-time" className="block text-xs font-bold text-gray-600 uppercase mb-1">Time</label>
+                  <input id="session-time" required type="time" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.time} onChange={e => setNewSession({...newSession, time: e.target.value})}/>
                  </div>
                  <div className="w-1/2">
-                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Duration</label>
-                    <select className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.duration} onChange={e => setNewSession({...newSession, duration: e.target.value})}>
+                  <label htmlFor="session-duration" className="block text-xs font-bold text-gray-600 uppercase mb-1">Duration</label>
+                  <select id="session-duration" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.duration} onChange={e => setNewSession({...newSession, duration: e.target.value})}>
                       <option>30 mins</option>
                       <option>1 hour</option>
                       <option>2 hours</option>
@@ -151,19 +197,28 @@ const Sessions = () => {
                </div>
                <div className="flex gap-4">
                  <div className="w-1/2">
-                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Mode</label>
-                    <select className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.mode} onChange={e => setNewSession({...newSession, mode: e.target.value})}>
+                    <label htmlFor="session-student" className="block text-xs font-bold text-gray-600 uppercase mb-1">Student</label>
+                    <select id="session-student" required className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.studentId} onChange={e => setNewSession({...newSession, studentId: e.target.value})}>
+                      <option value="">Select student</option>
+                      {tutorStudents.map((student) => (
+                        <option key={student._id} value={student._id}>{student.name}</option>
+                      ))}
+                    </select>
+                 </div>
+                 <div className="w-1/2">
+                    <label htmlFor="session-mode" className="block text-xs font-bold text-gray-600 uppercase mb-1">Mode</label>
+                    <select id="session-mode" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.mode} onChange={e => setNewSession({...newSession, mode: e.target.value})}>
                       <option>Online</option>
                       <option>Offline</option>
                     </select>
                  </div>
-                 {newSession.mode === 'Online' && (
-                    <div className="w-1/2">
-                      <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Link</label>
-                      <input type="text" placeholder="Zoom/Meet Link" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.meetingLink} onChange={e => setNewSession({...newSession, meetingLink: e.target.value})}/>
-                    </div>
-                 )}
                </div>
+               {newSession.mode === 'Online' && (
+                 <div>
+                   <label htmlFor="session-link" className="block text-xs font-bold text-gray-600 uppercase mb-1">Link</label>
+                   <input id="session-link" type="text" placeholder="Zoom/Meet Link" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.meetingLink} onChange={e => setNewSession({...newSession, meetingLink: e.target.value})}/>
+                 </div>
+               )}
                <button className="w-full bg-indigo-600 text-white font-bold py-3 pt-3 rounded-xl mt-4 hover:bg-indigo-700 shadow-md">Create Session</button>
              </form>
            </div>

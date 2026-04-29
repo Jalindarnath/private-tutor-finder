@@ -37,22 +37,22 @@ const Sidebar = () => {
   if(user?.role === 'admin') navItems = adminNavItems;
 
   return (
-    <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white border-r border-gray-100 hidden md:flex flex-col transition-all duration-300 ease-in-out relative z-20`}>
-      <div className="h-16 flex items-center px-4 md:px-6 justify-between border-b border-gray-50">
+    <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col transition-all duration-300 ease-in-out relative z-20`}>
+      <div className="h-16 flex items-center px-4 md:px-6 justify-between border-b border-gray-50 dark:border-gray-800">
         <Link to="/dashboard" className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center opacity-0 w-0' : 'opacity-100 w-auto'} transition-opacity duration-300 hover:opacity-80`}>
-          <GraduationCap className="h-7 w-7 text-indigo-600 shrink-0" />
-          <span className="font-bold text-xl text-gray-900 tracking-tight whitespace-nowrap">TutorFind</span>
+          <GraduationCap className="h-7 w-7 text-indigo-600 dark:text-indigo-400 shrink-0" />
+          <span className="font-bold text-xl text-gray-900 dark:text-white tracking-tight whitespace-nowrap">TutorFind</span>
         </Link>
         {collapsed ? (
-          <GraduationCap className="h-7 w-7 text-indigo-600 shrink-0 absolute left-1/2 -translate-x-1/2" />
+          <GraduationCap className="h-7 w-7 text-indigo-600 dark:text-indigo-400 shrink-0 absolute left-1/2 -translate-x-1/2" />
         ) : (
-          <GraduationCap className="h-7 w-7 text-indigo-600 shrink-0 absolute left-6 transition-all duration-300 opacity-0" />
+          <GraduationCap className="h-7 w-7 text-indigo-600 dark:text-indigo-400 shrink-0 absolute left-6 transition-all duration-300 opacity-0" />
         )}
       </div>
 
       <button 
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 bg-white border border-gray-100 rounded-full p-1 shadow-sm text-gray-400 hover:text-indigo-600 z-50 transition-colors"
+        className="absolute -right-3 top-20 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-full p-1 shadow-sm text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 z-50 transition-colors"
       >
         <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
       </button>
@@ -65,8 +65,8 @@ const Sidebar = () => {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group ${
                 isActive 
-                  ? 'bg-indigo-50 text-indigo-600 font-semibold shadow-sm' 
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-indigo-600'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-indigo-600 dark:hover:text-indigo-400'
               }`
             }
             title={collapsed ? item.name : ""}
@@ -77,22 +77,6 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-50">
-        <div className={`bg-linear-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white relative overflow-hidden transition-all duration-300 ${collapsed ? 'px-2 py-3 text-center' : ''}`}>
-           <div className="absolute top-0 right-0 w-16 h-16 bg-white opacity-10 rounded-full -mr-8 -mt-8"></div>
-           {collapsed ? (
-             <Star className="w-6 h-6 mx-auto text-yellow-300" />
-           ) : (
-             <>
-               <p className="text-sm font-semibold mb-1">Upgrade Pro</p>
-               <p className="text-xs text-indigo-100 mb-3">Get unlimited access</p>
-               <button className="w-full bg-white text-indigo-600 text-xs font-bold py-2 rounded-lg hover:bg-indigo-50 transition-colors shadow-sm">
-                 Upgrade Now
-               </button>
-             </>
-           )}
-        </div>
-      </div>
     </aside>
   );
 };

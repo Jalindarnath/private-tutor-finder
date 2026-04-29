@@ -1,8 +1,53 @@
 @import "tailwindcss";
 
+:root {
+  --app-bg: #f8fafc;
+  --app-text: #111827;
+  --surface-1: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #f3f4f6;
+  --border-1: #f3f4f6;
+  --border-2: #e5e7eb;
+  --text-1: #111827;
+  --text-2: #1f2937;
+  --text-3: #374151;
+  --text-4: #4b5563;
+  --text-muted: #6b7280;
+}
+
+html.dark {
+  --app-bg: #030712;
+  --app-text: #f3f4f6;
+  --surface-1: #111827;
+  --surface-2: #1f2937;
+  --surface-3: #374151;
+  --border-1: #1f2937;
+  --border-2: #374151;
+  --text-1: #f9fafb;
+  --text-2: #f3f4f6;
+  --text-3: #e5e7eb;
+  --text-4: #d1d5db;
+  --text-muted: #9ca3af;
+}
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased font-sans;
+    @apply antialiased font-sans;
+    background-color: var(--app-bg);
+    color: var(--app-text);
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  html.dark body {
+    @apply bg-gray-950 text-gray-100;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html:not(.dark) {
+    color-scheme: light;
   }
 }
 
@@ -10,17 +55,103 @@
   @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-lg relative;
 }
 
-/* Custom Scrollbar */
+html.dark .glassmorphism {
+  @apply bg-gray-800/70 border border-gray-700/20;
+}
+
+/* Custom Scrollbar Light Mode */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #f1f1f1;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1; 
+  background: #cbd5e1;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8; 
+  background: #94a3b8;
+}
+
+/* Custom Scrollbar Dark Mode */
+html.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dark mode compatibility overrides for existing light-only utility usage */
+html.dark .bg-white {
+  background-color: var(--surface-1);
+}
+
+html.dark .bg-white\/80 {
+  background-color: rgb(17 24 39 / 80%);
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-gray-50\/30,
+html.dark .bg-gray-50\/50 {
+  background-color: var(--surface-2);
+}
+
+html.dark .text-gray-900 {
+  color: var(--text-1);
+}
+
+html.dark .text-gray-800 {
+  color: var(--text-2);
+}
+
+html.dark .text-gray-700 {
+  color: var(--text-3);
+}
+
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: var(--text-4);
+}
+
+html.dark .text-gray-400 {
+  color: var(--text-muted);
+}
+
+html.dark .border-gray-50,
+html.dark .border-gray-100 {
+  border-color: var(--border-1);
+}
+
+html.dark .border-gray-200 {
+  border-color: var(--border-2);
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  color: var(--text-2);
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: var(--text-muted);
 }

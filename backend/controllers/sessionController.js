@@ -1,5 +1,6 @@
 const Session = require('../models/Session');
 const Booking = require('../models/Booking');
+const { emitSessionUpdate } = require('../socket');
 
 // Get sessions for a user (student or tutor)
 exports.getSessions = async (req, res) => {
@@ -35,8 +36,13 @@ exports.createSession = async (req, res) => {
 
     const session = new Session(sessionData);
     await session.save();
+    const populatedSession = await Session.findById(session._id)
+      .populate('tutorId', 'name email')
+      .populate('studentId', 'name email');
 
-    res.status(201).json(session);
+    emitSessionUpdate(populatedSession);
+
+    res.status(201).json(populatedSession);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
@@ -56,7 +62,12 @@ exports.updateSession = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const updatedSession = await Session.findByIdAndUpdate(sessionId, updates, { new: true });
+    const updatedSession = await Session.findByIdAndUpdate(sessionId, updates, { new: true })
+      .populate('tutorId', 'name email')
+      .populate('studentId', 'name email');
+
+    emitSessionUpdate(updatedSession);
+
     res.json(updatedSession);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });

@@ -1,11 +1,16 @@
 const express = require('express');
+const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+const { Server } = require('socket.io');
+const { setSocketServer } = require('./socket');
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(cors());
 app.use(express.json());
@@ -27,6 +32,42 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 // Add some dummy data generation route or logic if needed, but not strictly required if we build the UI for it.
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  },
+});
+
+io.use((socket, next) => {
+  try {
+    const bearerToken = socket.handshake.headers?.authorization?.startsWith('Bearer ')
+      ? socket.handshake.headers.authorization.split(' ')[1]
+      : null;
+    const token = socket.handshake.auth?.token || bearerToken;
+
+    if (!token) {
+      return next(new Error('Unauthorized'));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.data.userId = decoded.userId;
+    socket.data.role = decoded.role;
+    return next();
+  } catch (error) {
+    return next(new Error('Unauthorized'));
+  }
+});
+
+io.on('connection', (socket) => {
+  const userId = socket.data.userId;
+  if (userId) {
+    socket.join(`user:${String(userId)}`);
+  }
+});
+
+setSocketServer(io);
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

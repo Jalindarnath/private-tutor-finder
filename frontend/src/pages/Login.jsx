@@ -15,8 +15,8 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      await login(formData.email, formData.password);
-      navigate('/dashboard');
+      const user = await login(formData.email, formData.password);
+      navigate(user.role === 'admin' ? '/admin-dashboard' : '/dashboard', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to login');
     }

@@ -50,8 +50,8 @@ const Register = () => {
         payload.teachingMode = formData.teachingMode;
       }
 
-      await register(payload);
-      navigate('/dashboard');
+      const user = await register(payload);
+      navigate(user.role === 'admin' ? '/admin-dashboard' : '/dashboard', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to register');
     }

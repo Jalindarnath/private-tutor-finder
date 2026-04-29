@@ -8,18 +8,32 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/admin/users');
+      setUsers(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await api.get('/admin/users');
-        setUsers(res.data);
-      } catch (error) {
-        console.error(error);
-      }
-      setLoading(false);
-    };
     if (user?.role === 'admin') fetchUsers();
   }, [user]);
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user permanently?')) return;
+    
+    try {
+      await api.delete(`/admin/users/${userId}`);
+      setUsers(users.filter(u => u._id !== userId));
+      alert('User deleted successfully');
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || 'Failed to delete user');
+    }
+  };
 
   if (loading) return <div>Loading Users...</div>;
 
@@ -54,7 +68,11 @@ const AdminUsers = () => {
                       <span className={`px-2.5 py-1 rounded-md text-xs font-bold capitalize ${u.role === 'tutor' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>{u.role}</span>
                    </td>
                    <td className="p-4 text-center">
-                     <button className="text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition" title="Delete User">
+                     <button 
+                       onClick={() => handleDeleteUser(u._id)}
+                       className="text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition" 
+                       title="Delete User"
+                     >
                        <Trash2 className="w-4 h-4"/>
                      </button>
                    </td>
