@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Tutor = require('../models/Tutor');
+const Message = require('../models/Message');
 
 exports.createBooking = async (req, res) => {
   try {
@@ -12,13 +13,27 @@ exports.createBooking = async (req, res) => {
        return res.status(400).json({ message: 'Time slot already booked' });
     }
 
+    const tutor = await Tutor.findById(tutorId).populate('userId', 'name');
+    if (!tutor) {
+      return res.status(404).json({ message: 'Tutor profile not found' });
+    }
+
     const booking = await Booking.create({
       studentId: req.user.userId,
       tutorId,
       date,
       time,
-      message
+      message,
+      status: 'accepted'
     });
+
+    if (tutor.userId?._id) {
+      await Message.create({
+        senderId: tutor.userId._id,
+        receiverId: req.user.userId,
+        content: tutor.welcomeMessage || 'Welcome to my tutoring class. Looking forward to helping you learn!'
+      });
+    }
 
     res.status(201).json(booking);
   } catch (error) {

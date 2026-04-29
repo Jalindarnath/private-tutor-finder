@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
-import { Calendar, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -27,15 +27,6 @@ const Dashboard = () => {
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
 
-  const handleStatusUpdate = async (id, status) => {
-    try {
-      await api.put(`/bookings/${id}/status`, { status });
-      setBookings(bookings.map(b => b._id === id ? { ...b, status } : b));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
       <div className="flex justify-between items-end">
@@ -46,18 +37,14 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-white shadow-lg overflow-hidden relative">
+        <div className="bg-linear-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-white shadow-lg overflow-hidden relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10 blur-xl"></div>
             <h3 className="text-indigo-100 font-semibold mb-1 relative z-10">Total Sessions</h3>
             <p className="text-4xl font-black relative z-10">{bookings.length}</p>
          </div>
          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="text-gray-500 font-semibold mb-1">Upcoming</h3>
-            <p className="text-4xl font-black text-gray-900">{bookings.filter(b => b.status === 'accepted').length}</p>
-         </div>
-         <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="text-gray-500 font-semibold mb-1">Pending</h3>
-            <p className="text-4xl font-black text-amber-500">{bookings.filter(b => b.status === 'pending').length}</p>
+          <h3 className="text-gray-500 font-semibold mb-1">Confirmed</h3>
+          <p className="text-4xl font-black text-gray-900">{bookings.length}</p>
          </div>
       </div>
 
@@ -89,23 +76,7 @@ const Dashboard = () => {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                      booking.status === 'accepted' ? 'bg-emerald-50 text-emerald-600' :
-                      booking.status === 'pending' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
-                    }`}>
-                      {booking.status}
-                    </span>
-
-                    {booking.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <button onClick={() => handleStatusUpdate(booking._id, 'accepted')} className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition" title="Accept">
-                          <CheckCircle className="w-5 h-5" />
-                        </button>
-                        <button onClick={() => handleStatusUpdate(booking._id, 'rejected')} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition" title="Reject">
-                          <XCircle className="w-5 h-5" />
-                        </button>
-                      </div>
-                    )}
+                    <span className="text-xs font-semibold text-gray-500 capitalize">Confirmed</span>
                   </div>
                 </div>
               ))}
@@ -142,9 +113,6 @@ const Dashboard = () => {
                         <p className="font-semibold text-gray-800 text-sm">{b.tutorId?.userId?.name}</p>
                         <p className="text-xs text-gray-500">{new Date(b.date).toLocaleDateString()}</p>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${b.status === 'accepted' ? 'bg-green-50 text-green-600' : b.status === 'pending' ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'}`}>
-                        {b.status}
-                      </span>
                    </div>
                  ))}
                </div>

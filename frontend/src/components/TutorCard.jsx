@@ -15,12 +15,6 @@ const TutorCard = ({ tutor }) => {
         message: 'I would like to book a monthly session with you.'
       });
 
-      // 2. Create Chat Message to the Tutor
-      await api.post('/messages', {
-        receiverId: tutor.userId._id,
-        content: `Hi ${tutor.userId.name}! I just booked you for a monthly session.`
-      });
-
       alert('Tutor booked successfully! Check your messages or bookings page.');
       navigate('/messages');
     } catch (error) {

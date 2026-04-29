@@ -4,7 +4,7 @@ export const ThemeContext = createContext();
 
 // eslint-disable-next-line react/prop-types
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
@@ -13,8 +13,7 @@ export const ThemeProvider = ({ children }) => {
       return;
     }
 
-    const prefersDark = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
-    setTheme(prefersDark ? 'dark' : 'light');
+    setTheme('dark');
   }, []);
 
   useEffect(() => {

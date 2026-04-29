@@ -5,7 +5,7 @@ const bookingSchema = new mongoose.Schema({
   tutorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tutor', required: true },
   date: { type: Date, required: true },
   time: { type: String, required: true },
-  status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+  status: { type: String, enum: ['accepted', 'rejected'], default: 'accepted' },
   message: { type: String }
 }, { timestamps: true });
 
