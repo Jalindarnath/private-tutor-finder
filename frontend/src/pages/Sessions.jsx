@@ -12,14 +12,18 @@ const Sessions = () => {
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [newSession, setNewSession] = useState({ studentId: '', date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
+  const [newSession, setNewSession] = useState({ date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
 
   const fetchSessions = useCallback(async () => {
     try {
       const res = await api.get('/sessions');
+      console.log('📥 [Sessions] Fetched sessions:', res.data?.length || 0, 'sessions');
+      if (res.data?.length > 0) {
+        console.log('   Sessions:', res.data.map(s => ({ id: s._id, tutorName: s.tutorId?.name, studentName: s.studentId?.name })));
+      }
       setSessions(res.data || []);
     } catch (error) {
-      console.error(error);
+      console.error('❌ [Sessions] Error fetching sessions:', error);
     } finally {
       setLoading(false);
     }
@@ -39,7 +43,10 @@ const Sessions = () => {
     const socket = connectSocket(token);
     if (!socket) return;
 
-    const handleSessionUpdated = () => {
+    console.log('🔌 [Socket] Connected for user:', user.userId, 'role:', user.role);
+
+    const handleSessionUpdated = (payload) => {
+      console.log('🔔 [Socket] Received session:updated event', payload);
       fetchSessions();
     };
 
@@ -68,15 +75,10 @@ const Sessions = () => {
   const handleCreateSession = async (e) => {
     e.preventDefault();
 
-    if (user?.role === 'tutor' && !newSession.studentId) {
-      alert('Please select a student before creating a session.');
-      return;
-    }
-
     try {
       await api.post('/sessions', newSession);
       setShowModal(false);
-      setNewSession({ studentId: '', date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
+      setNewSession({ date: '', time: '', duration: '1 hour', mode: 'Online', meetingLink: '' });
       fetchSessions();
     } catch (error) {
       console.error(error);
@@ -195,23 +197,12 @@ const Sessions = () => {
                     </select>
                  </div>
                </div>
-               <div className="flex gap-4">
-                 <div className="w-1/2">
-                    <label htmlFor="session-student" className="block text-xs font-bold text-gray-600 uppercase mb-1">Student</label>
-                    <select id="session-student" required className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.studentId} onChange={e => setNewSession({...newSession, studentId: e.target.value})}>
-                      <option value="">Select student</option>
-                      {tutorStudents.map((student) => (
-                        <option key={student._id} value={student._id}>{student.name}</option>
-                      ))}
-                    </select>
-                 </div>
-                 <div className="w-1/2">
+               <div>
                     <label htmlFor="session-mode" className="block text-xs font-bold text-gray-600 uppercase mb-1">Mode</label>
                     <select id="session-mode" className="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={newSession.mode} onChange={e => setNewSession({...newSession, mode: e.target.value})}>
                       <option>Online</option>
                       <option>Offline</option>
                     </select>
-                 </div>
                </div>
                {newSession.mode === 'Online' && (
                  <div>

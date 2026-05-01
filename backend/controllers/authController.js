@@ -100,6 +100,7 @@ exports.login = async (req, res) => {
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json({
         _id: user._id,
+        userId: user._id,
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
@@ -123,7 +124,11 @@ exports.getProfile = async (req, res) => {
       if (user.role === 'tutor') {
         tutorProfile = await Tutor.findOne({ userId: user._id });
       }
-      res.json({ ...user.toObject(), tutorProfile });
+      res.json({ 
+        ...user.toObject(), 
+        userId: user._id,  // Add userId field for consistency with login endpoint
+        tutorProfile 
+      });
     } else {
       res.status(404).json({ message: 'User not found' });
     }

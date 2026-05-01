@@ -6,7 +6,18 @@ const { emitSessionUpdate } = require('../socket');
 exports.getSessions = async (req, res) => {
   try {
     const isTutor = req.user.role === 'tutor';
-    const query = isTutor ? { tutorId: req.user.userId } : { studentId: req.user.userId };
+    let query;
+    
+    if (isTutor) {
+      // Tutor sees all their sessions
+      query = { tutorId: req.user.userId };
+    } else {
+      // Student sees sessions from tutors they have booked with
+      const bookings = await Booking.find({ studentId: req.user.userId }).select('tutorId');
+      const tutorIds = bookings.map(b => b.tutorId);
+      query = { tutorId: { $in: tutorIds } };
+    }
+    
     const sessions = await Session.find(query)
       .populate('tutorId', 'name email')
       .populate('studentId', 'name email')
@@ -17,22 +28,19 @@ exports.getSessions = async (req, res) => {
   }
 };
 
-// Create a new session (Tutor creates for a student or independently linked to a booking)
+// Create a new session (visible to all students who booked with this tutor)
 exports.createSession = async (req, res) => {
   try {
     if (req.user.role !== 'tutor') {
       return res.status(403).json({ message: 'Only tutors can create sessions' });
     }
-    const { studentId, bookingId, date, time, duration, mode, meetingLink } = req.body;
+    const { date, time, duration, mode, meetingLink } = req.body;
     
-    // Ensure booking actually exists and belongs to this tutor and student
-    let sessionData = {
+    // Session is created without a specific student - visible to all booked students
+    const sessionData = {
       tutorId: req.user.userId,
       date, time, duration, mode, meetingLink
     };
-
-    if (studentId) sessionData.studentId = studentId;
-    if (bookingId) sessionData.bookingId = bookingId;
 
     const session = new Session(sessionData);
     await session.save();

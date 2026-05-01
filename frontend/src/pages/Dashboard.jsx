@@ -7,22 +7,40 @@ import { Navigate } from 'react-router-dom';
 const Dashboard = () => {
   const { user, loading } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [dashLoading, setDashLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const res = await api.get('/bookings');
-        setBookings(res.data);
+        const [bookingsRes, sessionsRes] = await Promise.all([
+          api.get('/bookings'),
+          api.get('/sessions'),
+        ]);
+
+        setBookings(bookingsRes.data || []);
+        setSessions(sessionsRes.data || []);
       } catch (error) {
         console.error(error);
+      } finally {
+        setDashLoading(false);
       }
-      setDashLoading(false);
     };
+
     if (user) {
-      fetchBookings();
+      fetchDashboardData();
     }
   }, [user]);
+
+  const upcomingSessions = sessions
+    .filter((session) => session.status === 'Scheduled')
+    .sort((left, right) => {
+      const leftDate = new Date(`${left.date?.slice?.(0, 10) || left.date}T${left.time || '00:00'}`);
+      const rightDate = new Date(`${right.date?.slice?.(0, 10) || right.date}T${right.time || '00:00'}`);
+      return leftDate - rightDate;
+    });
+
+  const nextSession = upcomingSessions[0];
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
@@ -93,10 +111,25 @@ const Dashboard = () => {
              <div className="p-6 border-b border-gray-50 bg-gray-50/50">
                 <h2 className="text-lg font-bold text-gray-900">Next Session</h2>
              </div>
-             <div className="p-6 flex-1 flex flex-col justify-center items-center text-center">
-                <Calendar className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-500">You don't have any upcoming sessions today.</p>
-             </div>
+             {dashLoading ? (
+               <div className="p-6 flex-1 flex flex-col justify-center items-center text-center text-gray-400">Loading...</div>
+             ) : nextSession ? (
+               <div className="p-6 flex-1 flex flex-col justify-center items-center text-center">
+                  <Calendar className="w-12 h-12 text-indigo-500 mb-3" />
+                  <p className="font-semibold text-gray-900 text-lg">
+                    {user.role === 'student' ? nextSession.tutorId?.name || 'Your tutor' : nextSession.studentId?.name || 'Class Session'}
+                  </p>
+                  <p className="text-gray-500 mt-1">
+                    {new Date(nextSession.date).toLocaleDateString()} at {nextSession.time}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-gray-400 mt-2">{nextSession.status}</p>
+               </div>
+             ) : (
+               <div className="p-6 flex-1 flex flex-col justify-center items-center text-center">
+                  <Calendar className="w-12 h-12 text-gray-300 mb-3" />
+                  <p className="text-gray-500">You don't have any upcoming sessions yet.</p>
+               </div>
+             )}
           </div>
 
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
